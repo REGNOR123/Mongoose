@@ -1,49 +1,29 @@
 
-const mongoose = require('mongoose'); //install and import "mongoose" package
+const express = require('express');
+require('./config');
+const Product = require('./product');
+const app = express();
 
-const productSchema = new mongoose.Schema({      // Schema created
-    name : String,
-    brand: String,
-    price: Number,
+app.use(express.json());
+
+app.get('/', async (request, response)=>{
+    const data = await Product.find();
+    response.send(data);
 });
-
-const productModel = new mongoose.model("products", productSchema); // Model created
- 
-const main = async ()=>{
-    await mongoose.connect("mongodb://localhost:27017/Project_E-Commerce"); // connect mongoose with mongodb database
- 
- 
-
-const saveInDB= async ()=>{
-    let data = new productModel({
-        name:"Sony Experia",
-        brand:"Micromax",
-        price:"25000"
-    });
-    let result = await data.save();
-    console.log(result);
-}
-// saveInDB()
-const updateInDB = async()=>{
-    let data = await productModel.updateOne(
-        {name:"Sony Experia"},{$set:{price:"150200", name:"Nokia Lumia"}}
-    )
-    console.log(data);
-}
-
-const deleteInDB = async()=>{
-    let data = await productModel.deleteOne(
-        {name:"Nokia Lumia"}
-    )
-    console.log(data);
-}
-// deleteInDB()
-const findInDB = async()=>{
-    let data = await productModel.find({name:"Q-50"}
-    )
-    console.log(data);
-}
-findInDB();
-
-}
-main();
+app.post('/create', async (request, response)=>{
+    const data = new Product(request.body);
+    const result = await data.save();
+    response.send(result);
+});
+app.delete('/delete/:_id', async (request, response)=>{
+    const data = new Product(request.params);
+    const result= await data.deleteOne(request.params);
+    response.send(result);
+});
+app.put('/update/:_id', async (request, response)=>{
+    const data = await Product.updateOne(
+        request.params,{$set:request.body}
+    );
+    response.send(data);
+});
+app.listen(5000);
